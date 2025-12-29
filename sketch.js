@@ -163,7 +163,7 @@ let isKaguraQuizTimeout = false;
 let fall3Sheet, fall3W, fall3H;
 let isKaguraHit = false;
 let kaguraHitTimer = 0;
-let kaguraX = 500;
+let kaguraX;
 let fight3Sheet, fight3W, fight3H;
 let run3Sheet, run3W, run3H;
 let kaguraHP = 100;
@@ -531,7 +531,9 @@ function setup() {
   tool4W = tool4Sheet.width / 5;
   tool4H = tool4Sheet.height;
 
-  stop2X = 500;
+  // 設定角色初始位置 (適應視窗大小)
+  stop2X = width * 0.6;
+  kaguraX = width * 0.6;
 
   hi5W = hi5Sheet.width / 4;
   hi5H = hi5Sheet.height;
@@ -1644,12 +1646,15 @@ function draw() {
           } else { // 如果沒有回饋，則顯示問題和選項
             // --- Draw Timer and Lives ---
             let uiYPos = baseStop2Y - 170;
-            let uiWidth = 380;
+            let uiWidth = min(380, width - 40); // 自適應寬度
             let uiXPos = stop2X + (stop2W * charScale - uiWidth) / 2;
+            // 確保 UI 不超出畫面
+            if (uiXPos < 20) uiXPos = 20;
+            if (uiXPos + uiWidth > width - 20) uiXPos = width - 20 - uiWidth;
 
             // Timer Bar on the left
             push();
-            let timerBarW = 180;
+            let timerBarW = uiWidth * 0.45;
             let timerBarH = 25;
             // Background
             fill(40, 40, 40, 240);
@@ -1670,7 +1675,7 @@ function draw() {
             // Seconds Display (Right of Timer Bar)
             push();
             let secondsBoxX = uiXPos + timerBarW + 10;
-            let secondsBoxW = 50;
+            let secondsBoxW = uiWidth * 0.15;
             let secondsBoxH = 25;
             // Background Box
             fill(40, 40, 40, 240);
@@ -1687,7 +1692,7 @@ function draw() {
 
             // RPG Style Hearts on the right
             push();
-            let heartBoxW = 120;
+            let heartBoxW = uiWidth * 0.3;
             let heartBoxH = 35;
             let heartBoxX = uiXPos + uiWidth - heartBoxW;
             let heartBoxY = uiYPos - 5;
@@ -1714,7 +1719,7 @@ function draw() {
             textFont('Courier New');
             textStyle(BOLD);
             
-            let q_bw = 380; 
+            let q_bw = uiWidth; 
             let q_bh = 100;
             let q_bx = uiXPos;
             let q_by = uiYPos + 40;
@@ -1732,13 +1737,13 @@ function draw() {
 
             // 在玩家角色頭上創建選項按鈕 (RPG 風格)
             if (quizButtons.length === 0) {
-              let startX = uiXPos + uiWidth + 20; // 固定在題目框右邊 (uiWidth 為 380)
-              let startY = uiYPos + 10; // 對齊題目框頂部
+              let startX = width > 800 ? uiXPos + uiWidth + 20 : uiXPos; // 寬螢幕在右邊，窄螢幕在下方
+              let startY = width > 800 ? uiYPos + 10 : uiYPos + 150; 
               let shuffledOptions = shuffle(q.options); 
               for (let i = 0; i < shuffledOptions.length; i++) {
                 let btn = createButton(shuffledOptions[i]);
                 btn.position(startX, startY + i * 55);
-                btn.size(240, 45);
+                btn.size(width > 800 ? 240 : uiWidth, 45);
                 
                 // CSS 樣式
                 btn.style('font-family', 'Courier New, monospace');
@@ -1833,7 +1838,7 @@ function draw() {
       if (currentKaguraFrame >= 8) {
         isKaguraHit = false;
         if (!isFighting) {
-          kaguraX = 500; // 非戰鬥模式下，起身後回到初始位置
+          kaguraX = width * 0.6; // 非戰鬥模式下，起身後回到初始位置
         }
       } else {
         // 只有在前 4 幀 (倒下過程) 才往後退，之後 (起身過程) 保持原地
@@ -2081,15 +2086,16 @@ function draw() {
         let q = currentKaguraQuizList[kaguraQuizStep];
         lastQuestionText = q.question; // 記錄當前題目
         // 固定測驗框位置
-        let fixedKaguraX = 500;
+        let fixedKaguraX = width * 0.5;
         let fixedKaguraY = height * 0.98 - (kaguraH * charScale);
         let uiYPos = fixedKaguraY - 170;
-        let uiXPos = fixedKaguraX - 50;
+        let uiWidth = min(380, width - 40);
+        let uiXPos = (width - uiWidth) / 2;
 
         // 1. 倒數計時與愛心 (上方)
         push();
         // Timer Bar
-        let timerBarW = 180;
+        let timerBarW = uiWidth * 0.45;
         let timerBarH = 25;
         fill(40, 40, 40, 240); stroke(255); strokeWeight(2);
         rect(uiXPos, uiYPos, timerBarW, timerBarH, 8);
@@ -2099,14 +2105,14 @@ function draw() {
         
         // Seconds
         fill(40, 40, 40, 240); stroke(255); strokeWeight(2);
-        rect(uiXPos + timerBarW + 10, uiYPos, 50, 25, 8);
+        rect(uiXPos + timerBarW + 10, uiYPos, uiWidth * 0.15, 25, 8);
         fill(255); noStroke(); textAlign(CENTER, CENTER); textSize(16);
-        text(Math.ceil(kaguraQuizTimer / 60), uiXPos + timerBarW + 35, uiYPos + 12.5);
+        text(Math.ceil(kaguraQuizTimer / 60), uiXPos + timerBarW + 10 + (uiWidth * 0.15)/2, uiYPos + 12.5);
 
         // Hearts
-        let heartBoxX = uiXPos + timerBarW + 70;
+        let heartBoxX = uiXPos + timerBarW + 10 + uiWidth * 0.15 + 10;
         fill(40, 40, 40, 240); stroke(255); strokeWeight(2);
-        rect(heartBoxX, uiYPos - 5, 100, 35, 8);
+        rect(heartBoxX, uiYPos - 5, uiWidth * 0.3, 35, 8);
         textSize(24); textAlign(CENTER, CENTER); noStroke(); fill(255, 50, 50);
         for(let i = 0; i < kaguraQuizLives; i++) text('♥', heartBoxX + 20 + i * 30, uiYPos + 12.5);
         pop();
@@ -2115,8 +2121,9 @@ function draw() {
         push();
         let q_txt = "Q" + (kaguraQuizStep + 1) + ": " + q.question;
         textSize(18); textFont('Courier New'); textStyle(BOLD);
-        let q_bw = 300; let q_bh = 100;
-        let q_bx = uiXPos - 50;
+        let q_bw = width > 800 ? 300 : uiWidth; 
+        let q_bh = 100;
+        let q_bx = width > 800 ? uiXPos - 50 : uiXPos;
         let q_by = uiYPos + 40;
         fill(0, 0, 0, 200); stroke(255); strokeWeight(3); rectMode(CORNER);
         rect(q_bx, q_by, q_bw, q_bh, 15);
@@ -2128,8 +2135,8 @@ function draw() {
         if (kaguraQuizFeedback !== "") {
             push();
             textSize(20); textFont('Courier New'); textStyle(BOLD);
-            let fb_bx = q_bx + q_bw + 20;
-            let fb_by = q_by + 20;
+            let fb_bx = width > 800 ? q_bx + q_bw + 20 : q_bx;
+            let fb_by = width > 800 ? q_by + 20 : q_by + q_bh + 10;
             fill(0, 0, 0, 200); stroke(255); strokeWeight(3); rectMode(CORNER);
             rect(fb_bx, fb_by, 200, 60, 15);
             fill(255); noStroke(); textAlign(CENTER, CENTER);
@@ -2145,8 +2152,8 @@ function draw() {
             }
         } else {
             // 顯示輸入框與按鈕
-            let inputX = q_bx + q_bw + 20;
-            let inputY = q_by + 30;
+            let inputX = width > 800 ? q_bx + q_bw + 20 : q_bx;
+            let inputY = width > 800 ? q_by + 30 : q_by + q_bh + 10;
             kaguraAnswerInput.show();
             kaguraAnswerInput.position(inputX, inputY);
             kaguraSubmitBtn.show();
@@ -2413,15 +2420,15 @@ function draw() {
         let fixedSakakiX = width / 2 + 50;
         let fixedSakakiY = height * 0.90 - (sakakiH * charScale);
         
-        let q_bw = 450; 
+        let q_bw = min(450, width - 40); 
         let q_bh = 200; 
-        let q_bx = fixedSakakiX - 250; 
+        let q_bx = (width - q_bw) / 2; 
         let q_by = fixedSakakiY - 200;
         let uiYPos = q_by - 35;
 
         push();
         // Timer
-        let timerBarW = 180; let timerBarH = 25;
+        let timerBarW = q_bw * 0.4; let timerBarH = 25;
         fill(40, 40, 40, 240); stroke(255); strokeWeight(2); rect(q_bx, uiYPos, timerBarW, timerBarH, 8);
         let progress = sakakiQuizTimer / maxQuizTime;
         fill(progress < 0.2 ? '#F44336' : (progress < 0.5 ? '#FFC107' : '#4CAF50')); noStroke();
@@ -2429,12 +2436,12 @@ function draw() {
         
         // Seconds
         fill(40, 40, 40, 240); stroke(255); strokeWeight(2);
-        rect(q_bx + timerBarW + 10, uiYPos, 50, 25, 8);
+        rect(q_bx + timerBarW + 10, uiYPos, q_bw * 0.15, 25, 8);
         fill(255); noStroke(); textAlign(CENTER, CENTER); textSize(16);
-        text(Math.ceil(sakakiQuizTimer / 60), q_bx + timerBarW + 35, uiYPos + 12.5);
+        text(Math.ceil(sakakiQuizTimer / 60), q_bx + timerBarW + 10 + (q_bw * 0.15)/2, uiYPos + 12.5);
 
         // Hearts
-        let heartBoxW = 100; let heartBoxH = 35;
+        let heartBoxW = q_bw * 0.25; let heartBoxH = 35;
         let heartBoxX = q_bx + q_bw - heartBoxW;
         let heartBoxY = uiYPos - 5;
         fill(40, 40, 40, 240); stroke(255); strokeWeight(2); rect(heartBoxX, heartBoxY, heartBoxW, heartBoxH, 8);
@@ -2455,7 +2462,7 @@ function draw() {
 
         if (sakakiQuizFeedback !== "") {
             push(); textSize(20); textFont('Courier New'); textStyle(BOLD);
-            let fb_bx = q_bx + q_bw + 20; let fb_by = q_by + 20;
+            let fb_bx = width > 800 ? q_bx + q_bw + 20 : q_bx; let fb_by = width > 800 ? q_by + 20 : q_by + q_bh + 10;
             fill(0, 0, 0, 200); stroke(255); strokeWeight(3); rectMode(CORNER); rect(fb_bx, fb_by, 200, 60, 15);
             fill(255); noStroke(); textAlign(CENTER, CENTER); text(sakakiQuizFeedback, fb_bx + 100, fb_by + 30); pop();
             sakakiQuizFeedbackTimer++;
@@ -2467,13 +2474,13 @@ function draw() {
             }
         } else {
             if (sakakiQuizButtons.length === 0) {
-              let startX = q_bx + q_bw + 20;
-              let startY = q_by;
+              let startX = width > 800 ? q_bx + q_bw + 20 : q_bx;
+              let startY = width > 800 ? q_by : q_by + q_bh + 10;
               let shuffledOptions = shuffle(q.options);
               for (let i = 0; i < shuffledOptions.length; i++) {
                 let btn = createButton(shuffledOptions[i]);
                 btn.position(startX, startY + i * 55);
-                btn.size(240, 45);
+                btn.size(width > 800 ? 240 : q_bw, 45);
                 btn.style('font-family', 'Courier New, monospace');
                 btn.style('font-size', '18px');
                 btn.style('font-weight', 'bold');
@@ -2599,7 +2606,7 @@ function draw() {
     // 成就框 (左邊)
     let achBoxW = 320;
     let achBoxH = 400;
-    let achBoxX = (width / 7) * 2; // 移到角色2頭頂
+    let achBoxX = width > 1000 ? (width / 7) * 2 : width * 0.25; // 移到角色2頭頂
     let char2HeadY = (height - 10) - (hi2H * charScale);
     let achBoxY = char2HeadY - achBoxH / 2 - 20;
     
@@ -2648,7 +2655,7 @@ function draw() {
     pop();
 
     // 排行榜框 (右邊)
-    let lbBoxX = width / 2 + 350;
+    let lbBoxX = width > 1000 ? width / 2 + 350 : width * 0.75;
     let lbBoxW = 320;
     let lbBoxH = 400;
     let lbBoxY = achBoxY; // 與成就列表齊平
@@ -2782,9 +2789,9 @@ function draw() {
     text("作者 : 414730233 林子靖", width - 20, height - 20);
     pop();
 
-    // 關機按鈕 (左下角)
-    let powerBtnX = 40;
-    let powerBtnY = height - 40;
+    // 關機按鈕 (改至左上角，避免擋到移動鍵)
+    let powerBtnX = 100;
+    let powerBtnY = 45;
     let isHoverPower = dist(mouseX, mouseY, powerBtnX, powerBtnY) < 20;
     
     push();
@@ -2803,47 +2810,6 @@ function draw() {
       text("離開", 0, -20);
     }
     pop();
-
-    // 離開確認對話框
-    if (showExitConfirmation) {
-      push();
-      rectMode(CENTER);
-      // 半透明遮罩
-      fill(0, 0, 0, 150);
-      noStroke();
-      rect(width/2, height/2, width, height);
-      
-      // 對話框
-      fill(62, 39, 35);
-      stroke(255, 215, 0);
-      strokeWeight(4);
-      rect(width/2, height/2, 300, 150, 15);
-      
-      // 文字
-      fill(255);
-      noStroke();
-      textAlign(CENTER, CENTER);
-      textSize(20);
-      textFont('Courier New');
-      textStyle(BOLD);
-      text("確定要離開遊戲嗎?", width/2, height/2 - 20);
-      
-      // 按鈕
-      let btnY = height/2 + 40;
-      
-      // 是
-      let yesHover = mouseX > width/2 - 90 && mouseX < width/2 - 10 && mouseY > btnY - 20 && mouseY < btnY + 20;
-      fill(yesHover ? '#FF5252' : '#D32F2F'); stroke(255); strokeWeight(2);
-      rect(width/2 - 50, btnY, 80, 40, 8);
-      fill(255); noStroke(); text("是", width/2 - 50, btnY);
-      
-      // 否
-      let noHover = mouseX > width/2 + 10 && mouseX < width/2 + 90 && mouseY > btnY - 20 && mouseY < btnY + 20;
-      fill(noHover ? '#4CAF50' : '#388E3C'); stroke(255); strokeWeight(2);
-      rect(width/2 + 50, btnY, 80, 40, 8);
-      fill(255); noStroke(); text("否", width/2 + 50, btnY);
-      pop();
-    }
 
     // 確保設定按鈕在結束畫面也能顯示
     drawSettingsButton();
@@ -3181,7 +3147,7 @@ function draw() {
         let q = currentYukariQuizList[yukariQuizStep];
         
         // 繪製測驗框 (類似 Sakaki 但無計時/愛心)
-        let q_bw = 450;
+        let q_bw = min(450, width - 40);
         let q_bh = 200;
         let q_bx = width / 2 - q_bw / 2;
         let q_by = height * 0.3; // 顯示在畫面上方
@@ -3197,7 +3163,7 @@ function draw() {
         pop();
         
         if (yukariQuizButtons.length === 0) {
-          let btnW = 300;
+          let btnW = min(300, width - 60);
           let btnH = 45;
           let startX = width / 2 - btnW / 2;
           let startY = q_by + q_bh + 20;
@@ -3802,7 +3768,7 @@ function draw() {
         
         currentScene = 'class101';
         isFighting = false;
-        stop2X = 500;
+        stop2X = width * 0.6;
         playerX = width - 150;
         playerY = height * 0.98 - (spriteH * charScale);
         
@@ -3824,7 +3790,7 @@ function draw() {
         
         currentScene = 'class102';
         isFighting = false;
-        kaguraX = 500; // 重置 Kagura 位置
+        kaguraX = width * 0.6; // 重置 Kagura 位置
         playerX = width - 150;
         playerY = height * 0.98 - (spriteH * charScale);
         
@@ -3911,7 +3877,7 @@ function draw() {
         }
 
         // 當回到走廊時，重置角色2的位置，以便下次進入教室時位置正確
-        stop2X = 500;
+        stop2X = width * 0.6;
         isFighting = false;
         quizFailed = false;
         quizFailedTimer = 0;
@@ -4262,7 +4228,7 @@ function mousePressed() {
   
   // 結束畫面排行榜頁籤切換
   if (currentScene === 'ending') {
-     let lbBoxX = width / 2 + 350;
+     let lbBoxX = width > 1000 ? width / 2 + 350 : width * 0.75;
      let lbBoxW = 320;
      let lbBoxH = 400;
      let char2HeadY = (height - 10) - (hi2H * charScale);
@@ -4289,7 +4255,7 @@ function mousePressed() {
      }
 
      // 關機按鈕點擊判定
-     if (dist(mouseX, mouseY, 40, height - 40) < 20) {
+     if (dist(mouseX, mouseY, 100, 45) < 25) {
        showExitConfirmation = true;
        return;
      }
@@ -4402,7 +4368,7 @@ function mouseWheel(event) {
        achievementScrollY = constrain(achievementScrollY, minScroll, 0);
     }
     
-    let lbBoxX = width / 2 + 350;
+    let lbBoxX = width > 1000 ? width / 2 + 350 : width * 0.75;
     let lbBoxW = 320;
     let lbBoxH = 400;
     let lbBoxY = achBoxY;
@@ -4534,6 +4500,48 @@ function drawHPBars() {
   }
 
   pop();
+
+  // 離開確認對話框 (移至最上層繪製)
+  if (showExitConfirmation) {
+    push();
+    resetMatrix(); // 確保不受其他變換影響
+    rectMode(CENTER);
+    // 半透明遮罩
+    fill(0, 0, 0, 150);
+    noStroke();
+    rect(width/2, height/2, width, height);
+    
+    // 對話框
+    fill(62, 39, 35);
+    stroke(255, 215, 0);
+    strokeWeight(4);
+    rect(width/2, height/2, 300, 150, 15);
+    
+    // 文字
+    fill(255);
+    noStroke();
+    textAlign(CENTER, CENTER);
+    textSize(20);
+    textFont('Courier New');
+    textStyle(BOLD);
+    text("確定要離開遊戲嗎?", width/2, height/2 - 20);
+    
+    // 按鈕
+    let btnY = height/2 + 40;
+    
+    // 是
+    let yesHover = mouseX > width/2 - 90 && mouseX < width/2 - 10 && mouseY > btnY - 20 && mouseY < btnY + 20;
+    fill(yesHover ? '#FF5252' : '#D32F2F'); stroke(255); strokeWeight(2);
+    rect(width/2 - 50, btnY, 80, 40, 8);
+    fill(255); noStroke(); text("是", width/2 - 50, btnY);
+    
+    // 否
+    let noHover = mouseX > width/2 + 10 && mouseX < width/2 + 90 && mouseY > btnY - 20 && mouseY < btnY + 20;
+    fill(noHover ? '#4CAF50' : '#388E3C'); stroke(255); strokeWeight(2);
+    rect(width/2 + 50, btnY, 80, 40, 8);
+    fill(255); noStroke(); text("否", width/2 + 50, btnY);
+    pop();
+  }
 }
 
 function handleChatSubmit() {
@@ -4654,7 +4662,7 @@ function resetGame() {
   bgX = 0;
   playerX = width * 0.1;
   playerY = height * 0.90 - (spriteH * charScale);
-  stop2X = 500; kaguraX = 500; sakakiX = width/2 + 50;
+  stop2X = width * 0.6; kaguraX = width * 0.6; sakakiX = width/2 + 50;
   sakakiState = 0; kaguraState = 0;
   hasPlayedYukariQuiz = false; hasPlayedYukariMiniGame = false;
   kaminekoEndTimer = 0;
@@ -5094,7 +5102,8 @@ function saveRecord() {
     name: playerName || "無名氏",
     score: score,
     coins: coinScore,
-    date: new Date().toLocaleDateString()
+    date: new Date().toLocaleString(),
+    platform: isMobileDevice ? 'Mobile' : 'Desktop'
   };
   leaderboardData.push(record);
   localStorage.setItem('survivalSchoolLeaderboard', JSON.stringify(leaderboardData));
@@ -5582,6 +5591,11 @@ function windowResized() {
   } else {
     groundY = height * 0.90 - (spriteH * charScale);
   }
+  
+  // 更新角色位置
+  stop2X = width * 0.6;
+  kaguraX = width * 0.6;
+  sakakiX = width / 2 + 50;
 
   // 調整 UI 元素大小 (輸入框與按鈕)
   let uiScale = charScale > 1 ? charScale * 0.8 : 1;
@@ -5619,51 +5633,46 @@ function updateTouchState() {
   tCtrl.run = false;
 
   // 定義按鈕區域
-  let btnSize = 60 * (charScale > 1 ? 1.2 : 1);
-  let margin = 20 * (charScale > 1 ? 1.2 : 1);
+  let btnSize = 70 * (charScale > 1 ? 1.2 : 1); // 稍微加大按鈕
+  let margin = 30 * (charScale > 1 ? 1.2 : 1); // 加大邊距
+  let spacing = 40 * (charScale > 1 ? 1.2 : 1); // 加大按鈕間距
   let yBase = height - margin - btnSize/2;
   
   // 左側控制 (左右)
   let leftX = margin + btnSize/2;
-  let rightX = leftX + btnSize + 20;
+  let rightX = leftX + btnSize + spacing;
   let arrowY = yBase;
 
   // 右側控制 (跳躍、蹲下、攻擊、跑步)
-  let actionX = width - margin - btnSize/2; // 最右邊 (攻擊)
-  let upX = actionX - btnSize - 20;         // 跳躍
-  let downX = upX;                          // 蹲下 (在跳躍下方? 不，並排比較好操作)
-  let runX = upX - btnSize - 20;            // 跑步
+  // 重新佈局：分開一點
+  // 跳躍 (Up): 右下角往上一點
+  let upX = width - margin - btnSize/2; 
+  let upY = yBase - btnSize - spacing/2;
   
-  // 重新佈局右側：十字鍵風格或並排
-  // 簡單佈局：
-  // 右下角：跳躍(Up)
-  // 跳躍左邊：攻擊(Action)
-  // 跳躍下面(或左下)：蹲下(Down)
-  // 攻擊左邊：跑步(Run)
-  
-  upX = width - margin - btnSize/2; 
-  let upY = yBase - btnSize;
-  
+  // 蹲下 (Down): 右下角
+  let downX = width - margin - btnSize/2;
   let downY = yBase;
-  downX = upX;
   
-  actionX = upX - btnSize - 20;
+  // 攻擊 (Action): 跳躍左邊
+  let actionX = upX - btnSize - spacing;
   let actionY = yBase - btnSize/2;
   
-  let runY = yBase - btnSize * 1.5; // 左上方一點
-  runX = actionX;
+  // 跑步 (Run): 攻擊左邊
+  let runX = actionX - btnSize - spacing;
+  let runY = actionY;
 
   // 檢查所有觸控點
+  let hitDist = btnSize * 0.75; // 縮小感應範圍以避免按鍵重疊
   for (let i = 0; i < touches.length; i++) {
     let tx = touches[i].x;
     let ty = touches[i].y;
     
-    if (dist(tx, ty, leftX, arrowY) < btnSize) tCtrl.left = true;
-    if (dist(tx, ty, rightX, arrowY) < btnSize) tCtrl.right = true;
-    if (dist(tx, ty, upX, upY) < btnSize) tCtrl.up = true;
-    if (dist(tx, ty, downX, downY) < btnSize) tCtrl.down = true;
-    if (dist(tx, ty, actionX, actionY) < btnSize) tCtrl.action = true;
-    if (dist(tx, ty, runX, runY) < btnSize) tCtrl.run = true;
+    if (dist(tx, ty, leftX, arrowY) < hitDist) tCtrl.left = true;
+    if (dist(tx, ty, rightX, arrowY) < hitDist) tCtrl.right = true;
+    if (dist(tx, ty, upX, upY) < hitDist) tCtrl.up = true;
+    if (dist(tx, ty, downX, downY) < hitDist) tCtrl.down = true;
+    if (dist(tx, ty, actionX, actionY) < hitDist) tCtrl.action = true;
+    if (dist(tx, ty, runX, runY) < hitDist) tCtrl.run = true;
   }
 
   if (tCtrl.action && !prevAction) {
@@ -5675,8 +5684,9 @@ function drawTouchUI() {
   push();
   noStroke();
   
-  let btnSize = 60 * (charScale > 1 ? 1.2 : 1);
-  let margin = 20 * (charScale > 1 ? 1.2 : 1);
+  let btnSize = 70 * (charScale > 1 ? 1.2 : 1);
+  let margin = 30 * (charScale > 1 ? 1.2 : 1);
+  let spacing = 40 * (charScale > 1 ? 1.2 : 1);
   let yBase = height - margin - btnSize/2;
   
   // 輔助函式：繪製按鈕背景
@@ -5706,14 +5716,14 @@ function drawTouchUI() {
   drawArrow(lx, ly, btnSize * 0.4, PI);
 
   // 右 (Right)
-  let rx = margin + btnSize/2 + btnSize + 20;
+  let rx = margin + btnSize/2 + btnSize + spacing;
   let ry = yBase;
   drawBtnBg(rx, ry, btnSize, tCtrl.right);
   drawArrow(rx, ry, btnSize * 0.4, 0);
 
   // 跳躍 (Up)
   let ux = width - margin - btnSize/2;
-  let uy = yBase - btnSize;
+  let uy = yBase - btnSize - spacing/2;
   drawBtnBg(ux, uy, btnSize, tCtrl.up);
   drawArrow(ux, uy, btnSize * 0.4, -HALF_PI);
 
@@ -5724,7 +5734,7 @@ function drawTouchUI() {
   drawArrow(dx, dy, btnSize * 0.4, HALF_PI);
 
   // 攻擊 (Action) - 繪製劍圖示
-  let ax = width - margin - btnSize/2 - btnSize - 20;
+  let ax = width - margin - btnSize/2 - btnSize - spacing;
   let ay = yBase - btnSize/2;
   drawBtnBg(ax, ay, btnSize, tCtrl.action);
   push();
@@ -5738,8 +5748,8 @@ function drawTouchUI() {
   pop();
   
   // 跑步 (Run) - 繪製雙箭頭
-  let runX = width - margin - btnSize/2 - btnSize - 20;
-  let runY = yBase - btnSize * 1.5;
+  let runX = ax - btnSize - spacing;
+  let runY = ay;
   fill(tCtrl.run ? 'rgba(255, 215, 0, 0.5)' : 'rgba(255, 255, 255, 50)');
   ellipse(runX, runY, btnSize * 0.8);
   push(); translate(runX, runY); fill(255, 255, 255, 200);
