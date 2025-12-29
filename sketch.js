@@ -1094,7 +1094,7 @@ function setup() {
     { x: 840, y: height * 0.75, w: 120, h: 30 },
     { x: 970, y: height * 0.60, w: 120, h: 30 },
     { x: 1100, y: height * 0.45, w: 120, h: 30 },
-    { x: 1230, y: height * 0.30, w: 120, h: 30 },
+    { x: min(1230, width - 150), y: height * 0.30, w: 120, h: 30 }, // 確保最右邊的平台在視窗內，避免手機版卡關
     { x: 300, y: height * 0.75, w: 80, h: 30 },
     { x: 500, y: height * 0.70, w: 80, h: 30 },
     { x: 650, y: height * 0.25, w: 80, h: 30 },
@@ -1106,7 +1106,7 @@ function setup() {
     if (i === 0) {
       // 地板金幣增加
       let numCoins = floor(p.w / 50);
-      for(let j=0; j<numCoins; j++) {
+      for(let j=0; j<numCoins / 2; j++) {
           coins103.push({ x: p.x + 50 + j*50, y: p.y - 60, collected: false });
       }
     } else {
