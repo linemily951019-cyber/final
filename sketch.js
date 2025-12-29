@@ -2570,7 +2570,7 @@ function draw() {
     
     // 再玩一次按鈕位置 (畫面中間)
     let btnY = height / 2;
-    if (!showSettings) {
+    if (!showSettings && !showExitConfirmation) {
       playAgainBtn.show();
       playAgainBtn.position(width / 2 - 80, btnY); // 稍微修正 X 軸以置中
     } else {
