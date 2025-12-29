@@ -532,7 +532,7 @@ function setup() {
   tool4H = tool4Sheet.height;
 
   // 設定角色初始位置 (適應視窗大小)
-  stop2X = width * 0.6;
+  stop2X = width * 0.5;
   kaguraX = width * 0.4; // 角色3往左移一點 (從 0.6 改為 0.5)
 
   hi5W = hi5Sheet.width / 4;
@@ -1094,7 +1094,7 @@ function setup() {
     { x: min(840, width - 150), y: height * 0.75, w: 120, h: 30 },
     { x: min(970, width - 150), y: height * 0.60, w: 120, h: 30 },
     { x: min(1100, width - 150), y: height * 0.45, w: 120, h: 30 },
-    { x: min(1230, width - 150), y: height * 0.30, w: 120, h: 30 }, // 確保最右邊的平台在視窗內，避免手機版卡關
+    { x: min(1180, width - 250), y: height * 0.30, w: 120, h: 30 }, // 確保最右邊的平台在視窗內，避免手機版卡關
     { x: 300, y: height * 0.75, w: 80, h: 30 },
     { x: 500, y: height * 0.70, w: 80, h: 30 },
     { x: 650, y: height * 0.25, w: 80, h: 30 },
@@ -2604,11 +2604,27 @@ function draw() {
     }
     
     // 成就框 (左邊)
-    let achBoxW = 320;
-    let achBoxH = 400;
-    let achBoxX = width > 1000 ? (width / 7) * 2 : width * 0.25; // 移到角色2頭頂
     let char2HeadY = (height - 10) - (hi2H * charScale);
-    let achBoxY = char2HeadY - achBoxH / 2 - 20;
+    let topMargin = 80; // 留出頂部空間給標題
+    let availableH = char2HeadY - topMargin;
+    let boxH = min(400, availableH - 20);
+    let boxY = topMargin + boxH / 2;
+    
+    let boxW = 320;
+    let achBoxX, lbBoxX;
+    
+    if (width > 1000) {
+        achBoxX = (width / 7) * 2;
+        lbBoxX = width / 2 + 350;
+    } else {
+        boxW = min(300, width * 0.35);
+        achBoxX = width * 0.22;
+        lbBoxX = width * 0.78;
+    }
+    
+    let achBoxW = boxW;
+    let achBoxH = boxH;
+    let achBoxY = boxY;
     
     push();
     rectMode(CENTER);
@@ -2655,10 +2671,9 @@ function draw() {
     pop();
 
     // 排行榜框 (右邊)
-    let lbBoxX = width > 1000 ? width / 2 + 350 : width * 0.75;
-    let lbBoxW = 320;
-    let lbBoxH = 400;
-    let lbBoxY = achBoxY; // 與成就列表齊平
+    let lbBoxW = boxW;
+    let lbBoxH = boxH;
+    let lbBoxY = boxY;
     
     push();
     rectMode(CENTER);
@@ -2768,8 +2783,8 @@ function draw() {
     
     // 新增: 感謝遊玩
     push();
-    fill(255, 215, 0); stroke(62, 39, 35); strokeWeight(5); textSize(60); textAlign(CENTER, BOTTOM); textStyle(BOLD);
-    text("感謝遊玩!", width/2, scoreBoxY - 50);
+    fill(255, 215, 0); stroke(62, 39, 35); strokeWeight(5); textSize(min(60, width/10)); textAlign(CENTER, TOP); textStyle(BOLD);
+    text("感謝遊玩!", width/2, 20);
     pop();
 
     fill(62, 39, 35, 230); stroke(255, 215, 0); strokeWeight(3);
@@ -3768,7 +3783,7 @@ function draw() {
         
         currentScene = 'class101';
         isFighting = false;
-        stop2X = width * 0.6;
+        stop2X = width * 0.5;
         playerX = width - 150;
         playerY = height * 0.98 - (spriteH * charScale);
         
@@ -3877,7 +3892,7 @@ function draw() {
         }
 
         // 當回到走廊時，重置角色2的位置，以便下次進入教室時位置正確
-        stop2X = width * 0.6;
+        stop2X = width * 0.5;
         isFighting = false;
         quizFailed = false;
         quizFailedTimer = 0;
@@ -4186,9 +4201,9 @@ function mousePressed() {
     }
 
     if (yukariMiniGameFinished) {
-      // 檢查是否點擊關閉按鈕 (右下角)
+      // 檢查是否點擊關閉按鈕 (改為左下角)
       let closeSize = 30;
-      let closeX = x + w - 30;
+      let closeX = x + 30;
       let closeY = y + h - 30;
       if (dist(mouseX, mouseY, closeX, closeY) < closeSize) {
         isYukariMiniGameActive = false;
@@ -4228,12 +4243,26 @@ function mousePressed() {
   
   // 結束畫面排行榜頁籤切換
   if (currentScene === 'ending') {
-     let lbBoxX = width > 1000 ? width / 2 + 350 : width * 0.75;
-     let lbBoxW = 320;
-     let lbBoxH = 400;
      let char2HeadY = (height - 10) - (hi2H * charScale);
-     let achBoxY = char2HeadY - 400 / 2 - 20;
-     let lbBoxY = achBoxY; // 與 draw 中一致
+     let topMargin = 80;
+     let availableH = char2HeadY - topMargin;
+     let boxH = min(400, availableH - 20);
+     let boxY = topMargin + boxH / 2;
+     
+     let boxW = 320;
+     let lbBoxX;
+     
+     if (width > 1000) {
+         lbBoxX = width / 2 + 350;
+     } else {
+         boxW = min(300, width * 0.35);
+         lbBoxX = width * 0.78;
+     }
+     
+     let lbBoxW = boxW;
+     let lbBoxH = boxH;
+     let lbBoxY = boxY;
+     
      let tabY = lbBoxY - lbBoxH/2 + 70;
      let tab1X = lbBoxX - 70;
      let tab2X = lbBoxX + 70;
@@ -4255,7 +4284,7 @@ function mousePressed() {
      }
 
      // 關機按鈕點擊判定
-     if (dist(mouseX, mouseY, 100, 45) < 25) {
+     if (dist(mouseX, mouseY, 100, 45) < 30) {
        showExitConfirmation = true;
        return;
      }
@@ -4353,11 +4382,27 @@ function mousePressed() {
 
 function mouseWheel(event) {
   if (currentScene === 'ending') {
-    let achBoxW = 320;
-    let achBoxH = 400;
-    let achBoxX = (width / 7) * 2;
     let char2HeadY = (height - 10) - (hi2H * charScale);
-    let achBoxY = char2HeadY - achBoxH / 2 - 20;
+    let topMargin = 80;
+    let availableH = char2HeadY - topMargin;
+    let boxH = min(400, availableH - 20);
+    let boxY = topMargin + boxH / 2;
+    
+    let boxW = 320;
+    let achBoxX, lbBoxX;
+    
+    if (width > 1000) {
+        achBoxX = (width / 7) * 2;
+        lbBoxX = width / 2 + 350;
+    } else {
+        boxW = min(300, width * 0.35);
+        achBoxX = width * 0.22;
+        lbBoxX = width * 0.78;
+    }
+    
+    let achBoxW = boxW;
+    let achBoxH = boxH;
+    let achBoxY = boxY;
     
     // 成就列表捲動
     if (mouseX > achBoxX - achBoxW/2 && mouseX < achBoxX + achBoxW/2 && mouseY > achBoxY - achBoxH/2 && mouseY < achBoxY + achBoxH/2) {
@@ -4368,10 +4413,9 @@ function mouseWheel(event) {
        achievementScrollY = constrain(achievementScrollY, minScroll, 0);
     }
     
-    let lbBoxX = width > 1000 ? width / 2 + 350 : width * 0.75;
-    let lbBoxW = 320;
-    let lbBoxH = 400;
-    let lbBoxY = achBoxY;
+    let lbBoxW = boxW;
+    let lbBoxH = boxH;
+    let lbBoxY = boxY;
     
     // 排行榜捲動
     if (mouseX > lbBoxX - lbBoxW/2 && mouseX < lbBoxX + lbBoxW/2 && mouseY > lbBoxY - lbBoxH/2 && mouseY < lbBoxY + lbBoxH/2) {
@@ -4662,7 +4706,7 @@ function resetGame() {
   bgX = 0;
   playerX = width * 0.1;
   playerY = height * 0.90 - (spriteH * charScale);
-  stop2X = width * 0.6; kaguraX = width * 0.5; sakakiX = width/2 + 50;
+  stop2X = width * 0.5; kaguraX = width * 0.5; sakakiX = width/2 + 50;
   sakakiState = 0; kaguraState = 0;
   hasPlayedYukariQuiz = false; hasPlayedYukariMiniGame = false;
   kaminekoEndTimer = 0;
@@ -4842,8 +4886,8 @@ function drawYukariMiniGame() {
     fill(200);
     // text("(點擊任意處關閉)", x + w/2, y + h/2 + 90);
 
-    // 繪製關閉按鈕 (右下角)
-    let closeX = x + w - 30;
+    // 繪製關閉按鈕 (改為左下角)
+    let closeX = x + 30;
     let closeY = y + h - 30;
     fill(200, 50, 50); stroke(255); strokeWeight(2); ellipse(closeX, closeY, 30);
     fill(255); noStroke(); textAlign(CENTER, CENTER); textSize(18); text("X", closeX, closeY);
@@ -5593,7 +5637,7 @@ function windowResized() {
   }
   
   // 更新角色位置
-  stop2X = width * 0.6;
+  stop2X = width * 0.5;
   kaguraX = width * 0.5;
   sakakiX = width / 2 + 50;
 
