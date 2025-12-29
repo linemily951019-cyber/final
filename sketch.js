@@ -533,7 +533,7 @@ function setup() {
 
   // 設定角色初始位置 (適應視窗大小)
   stop2X = width * 0.6;
-  kaguraX = width * 0.6;
+  kaguraX = width * 0.4; // 角色3往左移一點 (從 0.6 改為 0.5)
 
   hi5W = hi5Sheet.width / 4;
   hi5H = hi5Sheet.height;
@@ -1090,15 +1090,15 @@ function setup() {
     { x: 340, y: height * 0.25, w: 100, h: 30 },
     { x: 450, y: height * 0.35, w: 120, h: 30 },
     { x: 580, y: height * 0.50, w: 120, h: 30 },
-    { x: 710, y: height * 0.65, w: 120, h: 30 },
-    { x: 840, y: height * 0.75, w: 120, h: 30 },
-    { x: 970, y: height * 0.60, w: 120, h: 30 },
-    { x: 1100, y: height * 0.45, w: 120, h: 30 },
+    { x: min(710, width - 150), y: height * 0.65, w: 120, h: 30 }, // 確保平台不超出視窗
+    { x: min(840, width - 150), y: height * 0.75, w: 120, h: 30 },
+    { x: min(970, width - 150), y: height * 0.60, w: 120, h: 30 },
+    { x: min(1100, width - 150), y: height * 0.45, w: 120, h: 30 },
     { x: min(1230, width - 150), y: height * 0.30, w: 120, h: 30 }, // 確保最右邊的平台在視窗內，避免手機版卡關
     { x: 300, y: height * 0.75, w: 80, h: 30 },
     { x: 500, y: height * 0.70, w: 80, h: 30 },
     { x: 650, y: height * 0.25, w: 80, h: 30 },
-    { x: 1000, y: height * 0.85, w: 80, h: 30 }
+    { x: min(1000, width - 150), y: height * 0.85, w: 80, h: 30 }
   ];
 
   for (let i = 0; i < platforms103.length; i++) {
@@ -1838,7 +1838,7 @@ function draw() {
       if (currentKaguraFrame >= 8) {
         isKaguraHit = false;
         if (!isFighting) {
-          kaguraX = width * 0.6; // 非戰鬥模式下，起身後回到初始位置
+          kaguraX = width * 0.5; // 非戰鬥模式下，起身後回到初始位置
         }
       } else {
         // 只有在前 4 幀 (倒下過程) 才往後退，之後 (起身過程) 保持原地
@@ -3790,7 +3790,7 @@ function draw() {
         
         currentScene = 'class102';
         isFighting = false;
-        kaguraX = width * 0.6; // 重置 Kagura 位置
+        kaguraX = width * 0.5; // 重置 Kagura 位置
         playerX = width - 150;
         playerY = height * 0.98 - (spriteH * charScale);
         
@@ -4662,7 +4662,7 @@ function resetGame() {
   bgX = 0;
   playerX = width * 0.1;
   playerY = height * 0.90 - (spriteH * charScale);
-  stop2X = width * 0.6; kaguraX = width * 0.6; sakakiX = width/2 + 50;
+  stop2X = width * 0.6; kaguraX = width * 0.5; sakakiX = width/2 + 50;
   sakakiState = 0; kaguraState = 0;
   hasPlayedYukariQuiz = false; hasPlayedYukariMiniGame = false;
   kaminekoEndTimer = 0;
@@ -5594,7 +5594,7 @@ function windowResized() {
   
   // 更新角色位置
   stop2X = width * 0.6;
-  kaguraX = width * 0.6;
+  kaguraX = width * 0.5;
   sakakiX = width / 2 + 50;
 
   // 調整 UI 元素大小 (輸入框與按鈕)
