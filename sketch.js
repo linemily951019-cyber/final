@@ -532,7 +532,7 @@ function setup() {
   tool4H = tool4Sheet.height;
 
   // 設定角色初始位置 (適應視窗大小)
-  stop2X = width * 0.5;
+  stop2X = width * 0.4; // 角色2往左移 (0.5 -> 0.4)
   kaguraX = width * 0.4; // 角色3往左移一點 (從 0.6 改為 0.5)
 
   hi5W = hi5Sheet.width / 4;
@@ -2564,32 +2564,6 @@ function draw() {
     let c6Frame = floor(frameCount / 10) % 6;
     image(yukariHiSheet, spacing * 6 - (yukariHiW*charScale)/2, charY - yukariHiH*charScale, yukariHiW*charScale, yukariHiH*charScale, c6Frame*yukariHiW, 0, yukariHiW, yukariHiH);
 
-    // 繪製角色對話框 (若有觸發)
-    if (activeEndingMessageTimer > 0) {
-      activeEndingMessageTimer--;
-      push();
-      rectMode(CORNER);
-      textSize(16);
-      textFont('Courier New');
-      textStyle(BOLD);
-      let tw = textWidth(activeEndingMessage);
-      let bw = tw + 30;
-      let bh = 40;
-      // 顯示在角色左邊 (調整位置)
-      let bx = activeEndingCharX - bw - 40; 
-      let by = activeEndingCharY + 20;
-      
-      fill(255, 255, 255, 230); stroke(62, 39, 35); strokeWeight(2);
-      rect(bx, by, bw, bh, 10);
-      fill(62, 39, 35); noStroke(); textAlign(CENTER, CENTER);
-      text(activeEndingMessage, bx + bw/2, by + bh/2);
-      
-      // 對話框小尾巴
-      fill(255, 255, 255, 230); noStroke();
-      triangle(bx + bw, by + bh/2 - 5, bx + bw + 10, by + bh/2, bx + bw, by + bh/2 + 5);
-      pop();
-    }
-
     // 繪製 UI 框與按鈕
     push();
     rectMode(CENTER);
@@ -2614,11 +2588,11 @@ function draw() {
     let achBoxX, lbBoxX;
     
     if (width > 1000) {
-        achBoxX = (width / 7) * 2;
+        achBoxX = width * 0.25;
         lbBoxX = width / 2 + 350;
     } else {
         boxW = min(300, width * 0.35);
-        achBoxX = width * 0.22;
+        achBoxX = width * 0.20;
         lbBoxX = width * 0.78;
     }
     
@@ -2715,7 +2689,7 @@ function draw() {
     // 繪製標題 (靜態，不捲動)
     textAlign(LEFT, TOP); textSize(16); fill(255); 
     if (currentLeaderboardTab === 'coins') {
-      text("排名", lbBoxX - 130, listStartY); text("名字", lbBoxX - 80, listStartY); text("金幣", lbBoxX + 60, listStartY);
+      text("排名", lbBoxX - 130, listStartY); text("名字", lbBoxX - 80, listStartY); text("金幣數", lbBoxX + 60, listStartY);
     } else {
       text("排名", lbBoxX - 130, listStartY); text("名字", lbBoxX - 80, listStartY); text("分數", lbBoxX + 60, listStartY);
     }
@@ -2825,6 +2799,32 @@ function draw() {
       text("離開", 0, -20);
     }
     pop();
+
+    // 繪製角色對話框 (若有觸發) - 移至最上層顯示
+    if (activeEndingMessageTimer > 0) {
+      activeEndingMessageTimer--;
+      push();
+      rectMode(CORNER);
+      textSize(16);
+      textFont('Courier New');
+      textStyle(BOLD);
+      let tw = textWidth(activeEndingMessage);
+      let bw = tw + 30;
+      let bh = 40;
+      // 顯示在角色左邊
+      let bx = activeEndingCharX - bw - 40; 
+      let by = activeEndingCharY + 20;
+      
+      fill(255, 255, 255, 230); stroke(62, 39, 35); strokeWeight(2);
+      rect(bx, by, bw, bh, 10);
+      fill(62, 39, 35); noStroke(); textAlign(CENTER, CENTER);
+      text(activeEndingMessage, bx + bw/2, by + bh/2);
+      
+      // 對話框小尾巴 (指向右方)
+      fill(255, 255, 255, 230); noStroke();
+      triangle(bx + bw, by + bh/2 - 5, bx + bw + 10, by + bh/2, bx + bw, by + bh/2 + 5);
+      pop();
+    }
 
     // 確保設定按鈕在結束畫面也能顯示
     drawSettingsButton();
@@ -3783,7 +3783,7 @@ function draw() {
         
         currentScene = 'class101';
         isFighting = false;
-        stop2X = width * 0.5;
+        stop2X = width * 0.4;
         playerX = width - 150;
         playerY = height * 0.98 - (spriteH * charScale);
         
@@ -3892,7 +3892,7 @@ function draw() {
         }
 
         // 當回到走廊時，重置角色2的位置，以便下次進入教室時位置正確
-        stop2X = width * 0.5;
+        stop2X = width * 0.4;
         isFighting = false;
         quizFailed = false;
         quizFailedTimer = 0;
@@ -4010,6 +4010,48 @@ function draw() {
     if (isMobileDevice) {
       drawTouchUI();
     }
+  }
+
+  // 離開確認對話框 (移至最上層繪製)
+  if (showExitConfirmation) {
+    push();
+    resetMatrix(); // 確保不受其他變換影響
+    rectMode(CENTER);
+    // 半透明遮罩
+    fill(0, 0, 0, 150);
+    noStroke();
+    rect(width/2, height/2, width, height);
+    
+    // 對話框
+    fill(62, 39, 35);
+    stroke(255, 215, 0);
+    strokeWeight(4);
+    rect(width/2, height/2, 300, 150, 15);
+    
+    // 文字
+    fill(255);
+    noStroke();
+    textAlign(CENTER, CENTER);
+    textSize(20);
+    textFont('Courier New');
+    textStyle(BOLD);
+    text("確定要離開遊戲嗎?", width/2, height/2 - 20);
+    
+    // 按鈕
+    let btnY = height/2 + 40;
+    
+    // 是
+    let yesHover = mouseX > width/2 - 90 && mouseX < width/2 - 10 && mouseY > btnY - 20 && mouseY < btnY + 20;
+    fill(yesHover ? '#FF5252' : '#D32F2F'); stroke(255); strokeWeight(2);
+    rect(width/2 - 50, btnY, 80, 40, 8);
+    fill(255); noStroke(); text("是", width/2 - 50, btnY);
+    
+    // 否
+    let noHover = mouseX > width/2 + 10 && mouseX < width/2 + 90 && mouseY > btnY - 20 && mouseY < btnY + 20;
+    fill(noHover ? '#4CAF50' : '#388E3C'); stroke(255); strokeWeight(2);
+    rect(width/2 + 50, btnY, 80, 40, 8);
+    fill(255); noStroke(); text("否", width/2 + 50, btnY);
+    pop();
   }
 }
 
@@ -4292,10 +4334,12 @@ function mousePressed() {
      if (mouseX > tab1X - tabW/2 && mouseX < tab1X + tabW/2 && mouseY > tabY - tabH/2 && mouseY < tabY + tabH/2) {
        currentLeaderboardTab = 'coins';
        leaderboardScrollY = 0;
+       return;
      }
      if (mouseX > tab2X - tabW/2 && mouseX < tab2X + tabW/2 && mouseY > tabY - tabH/2 && mouseY < tabY + tabH/2) {
        currentLeaderboardTab = 'score';
        leaderboardScrollY = 0;
+       return;
      }
 
     // 角色點擊互動 (祝賀詞) - 移至 mousePressed
@@ -4392,11 +4436,11 @@ function mouseWheel(event) {
     let achBoxX, lbBoxX;
     
     if (width > 1000) {
-        achBoxX = (width / 7) * 2;
+        achBoxX = width * 0.25; // 成就列表往左移
         lbBoxX = width / 2 + 350;
     } else {
         boxW = min(300, width * 0.35);
-        achBoxX = width * 0.22;
+        achBoxX = width * 0.20; // 成就列表往左移
         lbBoxX = width * 0.78;
     }
     
@@ -4544,48 +4588,6 @@ function drawHPBars() {
   }
 
   pop();
-
-  // 離開確認對話框 (移至最上層繪製)
-  if (showExitConfirmation) {
-    push();
-    resetMatrix(); // 確保不受其他變換影響
-    rectMode(CENTER);
-    // 半透明遮罩
-    fill(0, 0, 0, 150);
-    noStroke();
-    rect(width/2, height/2, width, height);
-    
-    // 對話框
-    fill(62, 39, 35);
-    stroke(255, 215, 0);
-    strokeWeight(4);
-    rect(width/2, height/2, 300, 150, 15);
-    
-    // 文字
-    fill(255);
-    noStroke();
-    textAlign(CENTER, CENTER);
-    textSize(20);
-    textFont('Courier New');
-    textStyle(BOLD);
-    text("確定要離開遊戲嗎?", width/2, height/2 - 20);
-    
-    // 按鈕
-    let btnY = height/2 + 40;
-    
-    // 是
-    let yesHover = mouseX > width/2 - 90 && mouseX < width/2 - 10 && mouseY > btnY - 20 && mouseY < btnY + 20;
-    fill(yesHover ? '#FF5252' : '#D32F2F'); stroke(255); strokeWeight(2);
-    rect(width/2 - 50, btnY, 80, 40, 8);
-    fill(255); noStroke(); text("是", width/2 - 50, btnY);
-    
-    // 否
-    let noHover = mouseX > width/2 + 10 && mouseX < width/2 + 90 && mouseY > btnY - 20 && mouseY < btnY + 20;
-    fill(noHover ? '#4CAF50' : '#388E3C'); stroke(255); strokeWeight(2);
-    rect(width/2 + 50, btnY, 80, 40, 8);
-    fill(255); noStroke(); text("否", width/2 + 50, btnY);
-    pop();
-  }
 }
 
 function handleChatSubmit() {
@@ -4706,7 +4708,7 @@ function resetGame() {
   bgX = 0;
   playerX = width * 0.1;
   playerY = height * 0.90 - (spriteH * charScale);
-  stop2X = width * 0.5; kaguraX = width * 0.5; sakakiX = width/2 + 50;
+  stop2X = width * 0.4; kaguraX = width * 0.5; sakakiX = width/2 + 50;
   sakakiState = 0; kaguraState = 0;
   hasPlayedYukariQuiz = false; hasPlayedYukariMiniGame = false;
   kaminekoEndTimer = 0;
@@ -5085,7 +5087,7 @@ function checkAchievements() {
     unlockAchievement(3);
   }
   // 4: 教科達人
-  if (!unlockedAchievements[4] && hasPlayedYukariQuiz && yukariWrongAnswers === 0) {
+  if (!unlockedAchievements[4] && hasPlayedYukariQuiz && yukariCorrectCount === 5) {
     unlockAchievement(4);
   }
   // 5: 變小了!
@@ -5637,7 +5639,7 @@ function windowResized() {
   }
   
   // 更新角色位置
-  stop2X = width * 0.5;
+  stop2X = width * 0.4;
   kaguraX = width * 0.5;
   sakakiX = width / 2 + 50;
 
@@ -5794,7 +5796,7 @@ function drawTouchUI() {
   // 跑步 (Run) - 繪製雙箭頭
   let runX = ax - btnSize - spacing;
   let runY = ay;
-  fill(tCtrl.run ? 'rgba(255, 215, 0, 0.5)' : 'rgba(255, 255, 255, 50)');
+  fill(tCtrl.run ? 'rgba(255, 215, 0, 0.5)' : 'rgba(255, 255, 255, 0)'); // 透明背景
   ellipse(runX, runY, btnSize * 0.8);
   push(); translate(runX, runY); fill(255, 255, 255, 200);
   let s = btnSize * 0.15;
