@@ -266,6 +266,7 @@ let sakakiPlayCount = 0;
 let totalWrongAnswers = 0;
 let yukariWrongAnswers = 0;
 let unlockedAchievements = [false, false, false, false, false, false];
+let sessionUnlockedAchievements = []; // 用來記錄本次遊玩解鎖的成就
 let achievementQueue = [];
 const achievementsList = [
   { id: 0, title: "刷刷刷刷到厭倦", desc: "在每個關卡玩超過三次以上" },
@@ -276,6 +277,7 @@ const achievementsList = [
   { id: 5, title: "變小了!", desc: "縮小在小彩蛋教室內大吃特吃金幣!" }
 ];
 let leaderboardData = [];
+let currentSessionRecord = null; // 用來標記本次遊玩的成績紀錄
 let currentLeaderboardTab = 'coins'; // 'coins' or 'score'
 let hasSavedRecord = false;
 let achievementScrollY = 0;
@@ -285,6 +287,9 @@ let activeEndingMessageTimer = 0;
 let activeEndingCharX = 0;
 let activeEndingCharY = 0;
 let isMobileDevice = false;
+let showDatePopup = false;
+let datePopupText = "";
+let datePopupTitle = "";
 let showExitConfirmation = false;
 let tCtrl = {
   left: false, right: false, up: false, down: false, action: false, run: false
@@ -1234,8 +1239,17 @@ function setup() {
     if (storedData) {
       leaderboardData = JSON.parse(storedData);
     }
+    // 讀取成就紀錄
+    let storedAchievements = localStorage.getItem('survivalSchoolAchievements');
+    if (storedAchievements) {
+      let parsed = JSON.parse(storedAchievements);
+      unlockedAchievements = parsed.map(item => {
+        if (item === true) return { unlocked: true, date: "未知時間" }; // 相容舊存檔
+        return item;
+      });
+    }
   } catch (e) {
-    console.error("無法讀取排行榜資料", e);
+    console.error("無法讀取資料", e);
   }
 }
 
@@ -2615,17 +2629,67 @@ function draw() {
     drawingContext.rect(achBoxX - achBoxW/2 + 10, achBoxY - achBoxH/2 + 60, achBoxW - 20, achBoxH - 80);
     drawingContext.clip();
 
+    let hoveredAchDate = ""; // 用來儲存懸停時的日期文字
     let startAchY = achBoxY - achBoxH/2 + 70;
     for(let i=0; i<achievementsList.length; i++) {
       let ach = achievementsList[i];
       let y = startAchY + i * 85 + achievementScrollY;
       
       textAlign(LEFT, TOP);
-      fill(unlockedAchievements[i] ? '#FFD700' : '#9E9E9E'); // Gold or Gray
-      textSize(20); text((unlockedAchievements[i] ? "★ " : "🔒 ") + ach.title, achBoxX - achBoxW/2 + 20, y);
+      if (sessionUnlockedAchievements.includes(ach.id)) {
+        fill('#FF9800'); // 本次新解鎖 (亮橘色)
+        textSize(20); text("★ [新] " + ach.title, achBoxX - achBoxW/2 + 20, y);
+      } else if (unlockedAchievements[i]) {
+        fill('#FFD700'); // 歷史已解鎖 (金色)
+        textSize(20); text("★ " + ach.title, achBoxX - achBoxW/2 + 20, y);
+      } else {
+        fill('#9E9E9E'); // 未解鎖 (灰色)
+        textSize(20); text("🔒 " + ach.title, achBoxX - achBoxW/2 + 20, y);
+      }
       fill(255); textSize(14); text(ach.desc, achBoxX - achBoxW/2 + 20, y + 25);
+
+      // 檢查滑鼠是否懸停在已解鎖的成就上 (Tooltip 偵測)
+      let clipX = achBoxX - achBoxW/2 + 10;
+      let clipY = achBoxY - achBoxH/2 + 60;
+      let clipW = achBoxW - 20;
+      let clipH = achBoxH - 80;
+      
+      // 確保滑鼠在裁切區域內
+      if (mouseX > clipX && mouseX < clipX + clipW && mouseY > clipY && mouseY < clipY + clipH) {
+         // 確保滑鼠在該項目的高度範圍內
+         if (mouseY >= y && mouseY < y + 80) {
+            let achData = unlockedAchievements[i];
+            if (achData && (achData === true || achData.unlocked)) {
+               hoveredAchDate = (typeof achData === 'object' && achData.date) ? achData.date : "未知時間";
+            }
+         }
+      }
     }
     drawingContext.restore();
+
+    // 繪製 Tooltip (如果有的話，畫在最上層)
+    if (hoveredAchDate !== "") {
+        push();
+        rectMode(CORNER);
+        textSize(14);
+        textFont('Courier New');
+        textStyle(BOLD);
+        let tw = textWidth(hoveredAchDate);
+        let padding = 8;
+        let ttW = tw + padding * 2;
+        let ttH = 30;
+        let ttX = mouseX + 15;
+        let ttY = mouseY;
+        // 邊界檢查，避免超出視窗
+        if (ttX + ttW > width) ttX = mouseX - ttW - 5;
+        if (ttY + ttH > height) ttY = mouseY - ttH - 5;
+        
+        fill(0, 0, 0, 220); stroke(255); strokeWeight(1);
+        rect(ttX, ttY, ttW, ttH, 5);
+        fill(255); noStroke(); textAlign(LEFT, CENTER);
+        text(hoveredAchDate, ttX + padding, ttY + ttH/2);
+        pop();
+    }
 
     // 繪製成就列表滾軸
     let achContentH = achievementsList.length * 85;
@@ -2703,26 +2767,80 @@ function draw() {
     drawingContext.rect(lbBoxX - lbBoxW/2 + 10, listContentY, lbBoxW - 20, listContentH);
     drawingContext.clip();
 
+    let hoveredLbDate = ""; // 用來儲存懸停時的日期文字
+
     if (currentLeaderboardTab === 'coins') {
       for (let i = 0; i < displayList.length; i++) {
           let entry = displayList[i];
           let y = listContentY + i * 35 + leaderboardScrollY;
+          
+          // 如果是本次紀錄，顯示亮橘色，否則顯示白色
+          if (entry === currentSessionRecord) fill('#FF9800');
+          else fill(255);
+
           text((i + 1) + ".", lbBoxX - 130, y);
           let dName = entry.name.length > 6 ? entry.name.substring(0,5)+".." : entry.name;
           text(dName, lbBoxX - 80, y);
           text(entry.coins, lbBoxX + 60, y);
+
+          // Tooltip 偵測
+          let clipX = lbBoxX - lbBoxW/2 + 10;
+          let clipW = lbBoxW - 20;
+          if (mouseX > clipX && mouseX < clipX + clipW && mouseY > listContentY && mouseY < listContentY + listContentH) {
+             if (mouseY >= y && mouseY < y + 35) {
+                 hoveredLbDate = entry.date || "未知時間";
+             }
+          }
       }
     } else { // 'score'
       for (let i = 0; i < displayList.length; i++) {
           let entry = displayList[i];
           let y = listContentY + i * 35 + leaderboardScrollY;
+
+          // 如果是本次紀錄，顯示亮橘色，否則顯示白色
+          if (entry === currentSessionRecord) fill('#FF9800');
+          else fill(255);
+
           text((i + 1) + ".", lbBoxX - 130, y);
           let dName = entry.name.length > 6 ? entry.name.substring(0,5)+".." : entry.name;
           text(dName, lbBoxX - 80, y);
           text(entry.score, lbBoxX + 60, y);
+
+          // Tooltip 偵測
+          let clipX = lbBoxX - lbBoxW/2 + 10;
+          let clipW = lbBoxW - 20;
+          if (mouseX > clipX && mouseX < clipX + clipW && mouseY > listContentY && mouseY < listContentY + listContentH) {
+             if (mouseY >= y && mouseY < y + 35) {
+                 hoveredLbDate = entry.date || "未知時間";
+             }
+          }
       }
     }
     drawingContext.restore();
+
+    // 繪製 Tooltip (如果有的話，畫在最上層)
+    if (hoveredLbDate !== "") {
+        push();
+        rectMode(CORNER);
+        textSize(14);
+        textFont('Courier New');
+        textStyle(BOLD);
+        let tw = textWidth(hoveredLbDate);
+        let padding = 8;
+        let ttW = tw + padding * 2;
+        let ttH = 30;
+        let ttX = mouseX + 15;
+        let ttY = mouseY;
+        // 邊界檢查，避免超出視窗
+        if (ttX + ttW > width) ttX = mouseX - ttW - 5;
+        if (ttY + ttH > height) ttY = mouseY - ttH - 5;
+        
+        fill(0, 0, 0, 220); stroke(255); strokeWeight(1);
+        rect(ttX, ttY, ttW, ttH, 5);
+        fill(255); noStroke(); textAlign(LEFT, CENTER);
+        text(hoveredLbDate, ttX + padding, ttY + ttH/2);
+        pop();
+    }
     pop();
 
     // 繪製排行榜滾軸
@@ -4053,6 +4171,25 @@ function draw() {
     fill(255); noStroke(); text("否", width/2 + 50, btnY);
     pop();
   }
+
+  // 繪製日期彈出視窗 (最上層)
+  if (showDatePopup) {
+    push();
+    rectMode(CENTER);
+    fill(0, 0, 0, 230);
+    stroke(255, 215, 0);
+    strokeWeight(3);
+    rect(width/2, height/2, 350, 150, 15);
+    
+    fill(255, 215, 0); noStroke(); textAlign(CENTER, TOP); textSize(24); textFont('Courier New'); textStyle(BOLD);
+    text(datePopupTitle, width/2, height/2 - 50);
+    
+    fill(255); textSize(20); textAlign(CENTER, CENTER);
+    text(datePopupText, width/2, height/2 + 10);
+    
+    textSize(14); fill(200); text("(點擊任意處關閉)", width/2, height/2 + 50);
+    pop();
+  }
 }
 
 function submitName() {
@@ -4322,6 +4459,12 @@ function mousePressed() {
        if (mouseX > width/2 + 10 && mouseX < width/2 + 90 && mouseY > btnY - 20 && mouseY < btnY + 20) {
          showExitConfirmation = false;
        }
+       return;
+     }
+
+     // 關閉日期彈出視窗
+     if (showDatePopup) {
+       showDatePopup = false;
        return;
      }
 
@@ -4725,10 +4868,11 @@ function resetGame() {
   sakakiPlayCount = 0;
   totalWrongAnswers = 0;
   yukariWrongAnswers = 0;
-  unlockedAchievements = [false, false, false, false, false, false];
+  sessionUnlockedAchievements = []; // 重置遊戲時，只清除「本次」紀錄，保留總紀錄
   achievementQueue = [];
   hasSavedRecord = false;
   yukariMiniGameStarted = false;
+  currentSessionRecord = null; // 重置遊戲時，清除本次紀錄標記
   showExitConfirmation = false;
   
   nameInput.value(''); stop2Input.value(''); kaguraInput.value(''); sakakiInput.value('');
@@ -4831,7 +4975,8 @@ function drawYukariMiniGame() {
       if (c.type === 'bomb') {
         push();
         translate(c.x + coinsW/2, c.y + coinsH/2);
-        fill(50); noStroke(); ellipse(0, 0, coinsW, coinsH); // 炸彈本體
+        fill(50); stroke(255); strokeWeight(2); ellipse(0, 0, coinsW, coinsH); // 炸彈本體
+        noStroke();
         fill(255, 0, 0); textAlign(CENTER, CENTER); textSize(20); textStyle(BOLD); text("!", 0, 0);
         stroke(100); strokeWeight(2); noFill();
         line(0, -coinsH/2, 5, -coinsH/2 - 8); // 引信
@@ -5102,7 +5247,10 @@ function checkAchievements() {
 }
 
 function unlockAchievement(id) {
-  unlockedAchievements[id] = true;
+  unlockedAchievements[id] = { unlocked: true, date: new Date().toLocaleString() };
+  sessionUnlockedAchievements.push(id); // 加入本次解鎖清單
+  // 立即存檔到 localStorage
+  localStorage.setItem('survivalSchoolAchievements', JSON.stringify(unlockedAchievements));
   achievementQueue.push({
     title: achievementsList[id].title,
     timer: 0,
@@ -5151,6 +5299,7 @@ function saveRecord() {
     date: new Date().toLocaleString(),
     platform: isMobileDevice ? 'Mobile' : 'Desktop'
   };
+  currentSessionRecord = record; // 標記這筆資料為本次遊玩紀錄
   leaderboardData.push(record);
   localStorage.setItem('survivalSchoolLeaderboard', JSON.stringify(leaderboardData));
   hasSavedRecord = true;
