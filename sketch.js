@@ -5228,10 +5228,8 @@ function checkSakakiAnswer() {
 }
 
 function checkAchievements() {
-  if (currentScene !== 'ending') return;
-
   // 0: 刷刷刷刷到厭倦
-  if (!unlockedAchievements[0] && yomiPlayCount > 3 && kaguraPlayCount > 3 && sakakiPlayCount > 3) {
+  if (!unlockedAchievements[0] && yomiPlayCount >= 3 && kaguraPlayCount >= 3 && sakakiPlayCount >= 3) {
     unlockAchievement(0);
   }
   // 1: 家財萬貫
