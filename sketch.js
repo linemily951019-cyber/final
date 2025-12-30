@@ -940,7 +940,7 @@ function setup() {
     if (quizData.length > 0) {
       currentQuizList = shuffle(quizData).slice(0, 3);
     }
-    quizLives = 2;
+    quizLives = 3;
     quizTimer = maxQuizTime;
     quizStep = 0;
     quizFeedback = "";
@@ -1542,7 +1542,7 @@ function draw() {
                 if (quizData.length > 0) {
                   currentQuizList = shuffle(quizData).slice(0, 3);
                 }
-                quizLives = 2; // Reset lives
+                quizLives = 3; // Reset lives
                 quizTimer = maxQuizTime; // Reset timer
                 quizStep = 0;
                 quizFeedback = "";
@@ -5161,7 +5161,7 @@ function startKaguraQuiz() {
         currentKaguraQuizList = shuffle(quizData2).slice(0, 3);
     }
     isKaguraQuizActive = true;
-    kaguraQuizLives = 2;
+    kaguraQuizLives = 3;
     kaguraQuizTimer = maxQuizTime;
     kaguraQuizStep = 0;
     kaguraQuizFeedback = "";
@@ -5197,7 +5197,7 @@ function startSakakiQuiz() {
         currentSakakiQuizList = shuffle(quizData3).slice(0, 3);
     }
     isSakakiQuizActive = true;
-    sakakiQuizLives = 2;
+    sakakiQuizLives = 3;
     sakakiQuizTimer = maxQuizTime;
     sakakiQuizStep = 0;
     sakakiQuizFeedback = "";
