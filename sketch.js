@@ -255,6 +255,7 @@ let yukariMiniGameExplosions = [];
 let yukariMiniGameStarted = false;
 let hasPlayedYukariQuiz = false;
 let hasPlayedYukariMiniGame = false;
+let hasFinishedClass103 = false;
 let kaminekoEndTimer = 0;
 let continueGameBtn, endGameBtn;
 let endGameChoice = "";
@@ -939,7 +940,7 @@ function setup() {
     if (quizData.length > 0) {
       currentQuizList = shuffle(quizData).slice(0, 3);
     }
-    quizLives = 3;
+    quizLives = 2;
     quizTimer = maxQuizTime;
     quizStep = 0;
     quizFeedback = "";
@@ -1140,6 +1141,7 @@ function setup() {
     sakakiQuizFailedTimer = 0;
     isSakakiQuizTimeout = false;
     missions[5].completed = false;
+    playerLostBattle = false;
     startSakakiQuiz();
     retrySakakiQuizBtn.hide();
   });
@@ -1540,7 +1542,7 @@ function draw() {
                 if (quizData.length > 0) {
                   currentQuizList = shuffle(quizData).slice(0, 3);
                 }
-                quizLives = 3; // Reset lives
+                quizLives = 2; // Reset lives
                 quizTimer = maxQuizTime; // Reset timer
                 quizStep = 0;
                 quizFeedback = "";
@@ -2334,6 +2336,9 @@ function draw() {
       } else if (missions[5].completed) {
         txt = "你好棒!笑一個!";
         retrySakakiQuizBtn.show();
+      } else if (playerLostBattle) {
+        txt = "準備好了跟我說好哦~";
+        retrySakakiQuizBtn.show();
       } else if (sakakiQuizFailed) {
         txt = isSakakiQuizTimeout ? "我以為這些很簡單欸..." : "我很看好你欸...";
       } else if (sakakiState === 1) {
@@ -2397,7 +2402,7 @@ function draw() {
         textStyle(BOLD);
         text(txt, bx + bw / 2, by + bh / 2);
 
-        if (missions[5].completed) {
+        if (missions[5].completed || playerLostBattle) {
           retrySakakiQuizBtn.position(bx + bw / 2 - 50, by - 40);
         }
       }
@@ -3755,7 +3760,7 @@ function draw() {
       if (missions[4].completed) completedLevels++;
       if (missions[5].completed) completedLevels++;
 
-      if (completedLevels >= 2 && abs((playerX + spriteW / 2) - door103WorldX) < 50) {
+      if (completedLevels >= 2 && abs((playerX + spriteW / 2) - door103WorldX) < 50 && !hasFinishedClass103) {
         enter103Btn.show();
         enter103Btn.position(door103WorldX - 30, fixedButtonY);
       } else {
@@ -4007,6 +4012,7 @@ function draw() {
            playerX -= (spriteW * charScale) / 2;
         } else if (prevScene === 'class103') {
            playerX = (bgX - width) + width * 0.36 - spriteW / 2;
+           hasFinishedClass103 = true;
         }
 
         // 當回到走廊時，重置角色2的位置，以便下次進入教室時位置正確
@@ -4226,7 +4232,13 @@ function completeMission(index) {
   if (index >= 0 && index < missions.length) {
     missions[index].completed = true;
     let options = missionList.elt.getElementsByTagName('option');
-    if (options[index]) { options[index].disabled = true; options[index].style.color = 'gray'; options[index].text += ' (已完成)'; }
+    if (options[index]) { 
+      options[index].disabled = true; 
+      options[index].style.color = 'gray'; 
+      if (!options[index].text.includes('(已完成)')) {
+        options[index].text += ' (已完成)'; 
+      }
+    }
   }
 }
 
@@ -4414,7 +4426,7 @@ function mousePressed() {
   }
 
   // 提示幣框點擊判定 (位置約在 580, 20, 寬220, 高45)
-  if (mouseX > 580 && mouseX < 800 && mouseY > 20 && mouseY < 65) {
+  if (currentScene !== 'ending' && mouseX > 580 && mouseX < 800 && mouseY > 20 && mouseY < 65) {
     showCoinHelp = !showCoinHelp;
     showScoreHelp = false;
     return;
@@ -4530,7 +4542,7 @@ function mousePressed() {
   }
 
   // 得分框點擊判定 (位置約在 830, 20, 寬220, 高45)
-  if (mouseX > 830 && mouseX < 1050 && mouseY > 20 && mouseY < 65) {
+  if (currentScene !== 'ending' && mouseX > 830 && mouseX < 1050 && mouseY > 20 && mouseY < 65) {
     showScoreHelp = !showScoreHelp;
     showCoinHelp = false;
     return;
@@ -4648,7 +4660,7 @@ function drawHPBars() {
   let barH = 25;
   let containerW = 350;
   let containerH = 90;
-  let yPos = 80;
+  let yPos = 150;
   let padding = 40;
   const maxHP = 100;
   
@@ -4854,6 +4866,7 @@ function resetGame() {
   stop2X = width * 0.4; kaguraX = width * 0.5; sakakiX = width/2 + 50;
   sakakiState = 0; kaguraState = 0;
   hasPlayedYukariQuiz = false; hasPlayedYukariMiniGame = false;
+  hasFinishedClass103 = false;
   kaminekoEndTimer = 0;
   endGameChoice = "";
   endGameTimer = 0;
@@ -5148,7 +5161,7 @@ function startKaguraQuiz() {
         currentKaguraQuizList = shuffle(quizData2).slice(0, 3);
     }
     isKaguraQuizActive = true;
-    kaguraQuizLives = 3;
+    kaguraQuizLives = 2;
     kaguraQuizTimer = maxQuizTime;
     kaguraQuizStep = 0;
     kaguraQuizFeedback = "";
@@ -5184,7 +5197,7 @@ function startSakakiQuiz() {
         currentSakakiQuizList = shuffle(quizData3).slice(0, 3);
     }
     isSakakiQuizActive = true;
-    sakakiQuizLives = 3;
+    sakakiQuizLives = 2;
     sakakiQuizTimer = maxQuizTime;
     sakakiQuizStep = 0;
     sakakiQuizFeedback = "";
@@ -5215,6 +5228,8 @@ function checkSakakiAnswer() {
 }
 
 function checkAchievements() {
+  if (currentScene !== 'ending') return;
+
   // 0: 刷刷刷刷到厭倦
   if (!unlockedAchievements[0] && yomiPlayCount > 3 && kaguraPlayCount > 3 && sakakiPlayCount > 3) {
     unlockAchievement(0);
