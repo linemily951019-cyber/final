@@ -272,7 +272,7 @@ let achievementQueue = [];
 const achievementsList = [
   { id: 0, title: "刷刷刷刷到厭倦", desc: "在每個關卡玩超過三次以上" },
   { id: 1, title: "家財萬貫", desc: "獲得超過5000個提示幣" },
-  { id: 2, title: "戰鬥高手", desc: "打敗所有關主" },
+  { id: 2, title: "戰鬥高手", desc: "打敗三個關主" },
   { id: 3, title: "你是天才", desc: "答對每一題!沒有錯誤!" },
   { id: 4, title: "教科達人", desc: "在進行Yukari的測驗時零失誤!" },
   { id: 5, title: "變小了!", desc: "縮小在小彩蛋教室內大吃特吃金幣!" }
@@ -2318,7 +2318,7 @@ function draw() {
       }
     }
 
-    if (abs(playerX - sakakiX) < 200 && !isFighting) {
+    if (abs(playerX - sakakiX) < 200 && !isFighting && !isSakakiQuizActive) {
       if (sakakiState === 0) {
         sakakiState = 1;
         sakakiDialogueTimer = 0;
@@ -3676,7 +3676,7 @@ function draw() {
         sakakiHitTimer = 0;
         tools.splice(i, 1);
         if (isFighting) {
-          sakakiHP -= 25;
+          sakakiHP -= 20;
           if (sakakiHP < 0) sakakiHP = 0;
         }
       }
@@ -4667,8 +4667,18 @@ function drawHPBars() {
   textFont('Courier New');
   textStyle(BOLD);
 
-  // --- Enemy HUD (Left) ---
-  let enemyHPX = padding;
+  let enemyHPX, playerHPX;
+  if (currentScene === 'playground') {
+    // Sakaki: Player Left, Enemy Right
+    playerHPX = padding;
+    enemyHPX = width - containerW - padding;
+  } else {
+    // Others: Enemy Left, Player Right
+    enemyHPX = padding;
+    playerHPX = width - containerW - padding;
+  }
+
+  // --- Enemy HUD ---
   
   // Container
   fill(62, 39, 35, 230); // Dark brown background
@@ -4703,8 +4713,7 @@ function drawHPBars() {
     rect(barX, barY, enemyHPWidth, barH/2, 10);
   }
 
-  // --- Player HUD (Right) ---
-  let playerHPX = width - containerW - padding;
+  // --- Player HUD ---
 
   // Container
   fill(255, 248, 225, 230);
@@ -5234,7 +5243,11 @@ function checkAchievements() {
     unlockAchievement(1);
   }
   // 2: 戰鬥高手
-  if (!unlockedAchievements[2] && yomiDefeated && kaguraDefeated && sakakiDefeated) {
+  let defeatedCount = 0;
+  if (yomiDefeated) defeatedCount++;
+  if (kaguraDefeated) defeatedCount++;
+  if (sakakiDefeated) defeatedCount++;
+  if (!unlockedAchievements[2] && defeatedCount >= 3) {
     unlockAchievement(2);
   }
   // 3: 你是天才 (需完成所有測驗任務且無錯誤)
