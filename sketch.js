@@ -2638,7 +2638,7 @@ function draw() {
       textAlign(LEFT, TOP);
       if (sessionUnlockedAchievements.includes(ach.id)) {
         fill('#FF9800'); // 本次新解鎖 (亮橘色)
-        textSize(20); text("★ [新] " + ach.title, achBoxX - achBoxW/2 + 20, y);
+        textSize(20); text("★ " + ach.title, achBoxX - achBoxW/2 + 20, y);
       } else if (unlockedAchievements[i]) {
         fill('#FFD700'); // 歷史已解鎖 (金色)
         textSize(20); text("★ " + ach.title, achBoxX - achBoxW/2 + 20, y);
