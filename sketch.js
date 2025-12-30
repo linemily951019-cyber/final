@@ -933,7 +933,6 @@ function setup() {
     yomiDefeated = false;
     quizFailed = false;
     isQuizTimeout = false;
-    missions[3].completed = false;
     playerLostBattle = false;
     
     isQuizActive = true;
@@ -1024,7 +1023,6 @@ function setup() {
     kaguraDefeated = false;
     kaguraQuizFailed = false;
     isKaguraQuizTimeout = false;
-    missions[4].completed = false;
     playerLostBattle = false;
     startKaguraQuiz();
     retryKaguraQuizBtn.hide();
@@ -1140,7 +1138,6 @@ function setup() {
     sakakiDefeated = false;
     sakakiQuizFailedTimer = 0;
     isSakakiQuizTimeout = false;
-    missions[5].completed = false;
     playerLostBattle = false;
     startSakakiQuiz();
     retrySakakiQuizBtn.hide();
@@ -1409,7 +1406,7 @@ function draw() {
       currentStop2W = end2W;
       currentStop2H = end2H;
       currentStop2Frame = floor(frameCount / 10) % 4;
-    } else if (missions[3].completed) {
+    } else if (missions[3].completed && !isQuizActive && !quizFailed && !playerLostBattle) {
       currentStop2Sheet = right2Sheet;
       currentStop2W = right2W;
       currentStop2H = right2H;
@@ -1517,7 +1514,7 @@ function draw() {
         txt = "你怎麼可以暴力...";
       } else if (quizFailed) {
         txt = isQuizTimeout ? "這麼簡單想那麼久?" : "這麼簡單你也可以全錯?!";
-      } else if (missions[3].completed) {
+      } else if (missions[3].completed && !playerLostBattle) {
         txt = "你很棒!你答完了";
       } else if (!hasAnsweredStop2) { // 如果玩家還沒回應過
         txt = "哈囉，" + playerName;
@@ -1918,7 +1915,7 @@ function draw() {
         fadeDirection = 1;
         targetScene = 'class102_fight';
       }
-    } else if (missions[4].completed) {
+    } else if (missions[4].completed && !isKaguraQuizActive && !playerLostBattle) {
       currentKaguraSheet = right3Sheet;
       currentKaguraW = right3W;
       currentKaguraH = right3H;
@@ -1988,7 +1985,7 @@ function draw() {
       if (kaguraDefeated) {
         txt = "我下次會打敗你..";
         retryKaguraQuizBtn.show();
-      } else if (missions[4].completed) {
+      } else if (missions[4].completed && !kaguraQuizFailed && !playerLostBattle) {
         txt = "你好棒喔你答完了快走吧!";
         retryKaguraQuizBtn.show();
       } else if (playerLostBattle) {
@@ -2266,7 +2263,7 @@ function draw() {
       currentSakakiW = end4W;
       currentSakakiH = end4H;
       currentSakakiFrame = floor(frameCount / 10) % 5;
-    } else if (missions[5].completed) {
+    } else if (missions[5].completed && !isSakakiQuizActive && !playerLostBattle) {
       currentSakakiSheet = right4Sheet;
       currentSakakiW = right4W;
       currentSakakiH = right4H;
@@ -2333,7 +2330,7 @@ function draw() {
       if (sakakiDefeated) {
         txt = "被你打敗了...";
         retrySakakiQuizBtn.show();
-      } else if (missions[5].completed) {
+      } else if (missions[5].completed && !sakakiQuizFailed && !playerLostBattle) {
         txt = "你好棒!笑一個!";
         retrySakakiQuizBtn.show();
       } else if (playerLostBattle) {
